@@ -4,11 +4,8 @@ import os
 sys.path.append(os.path.join(sys.path[0], 'webpy'))
 
 import web
-import sqlite3
 import json
-from sqlalchemy.pool import SingletonThreadPool
-
-from find_num import find_num
+import dao
 
 urls = ('/', 'Raffle',
         '/query', 'Query',
@@ -16,7 +13,6 @@ urls = ('/', 'Raffle',
 
 app = web.application(urls, globals())
 render = web.template.render('templates')
-pool = SingletonThreadPool(lambda: sqlite3.connect('numbers.db'))
 
 class Raffle(object):
     def GET(self):
@@ -25,8 +21,14 @@ class Raffle(object):
 class Query(object):
     def GET(self):
         num = web.input(num='').num
-        result = find_num(pool.connect(), str(num))
-        return json.dumps({'status': status, 'results':[r[0] for r in result]})
+        if len(num) == 0:
+            return json.dumps({'status': 'empty'})
+
+        result = dao.find_num(str(num))
+        status = 'ok'
+        return json.dumps({'status': status, 
+                           'count': result['count'],
+                           'numbers':[r[0] for r in result['numbers']]})
 
 class Setup(object):
     def GET(self):

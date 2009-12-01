@@ -44,8 +44,12 @@
     <script type="text/javascript">
         var selected = false;
         function results(data) {
-            var len = data.results.length;
-            $$('#count').text(len + ' numbers found.');
+            if (data.status == 'ok' && data.count > 0) {
+                var results = data.numbers;
+                $$('#count').text(data.count + ' numbers found.');
+            } else if (data.status == 'empty' || data.count == 0) {
+                $$('#count').text('No number found.');
+            }
         }
 
         function onKeyUp(e) {

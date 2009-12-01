@@ -1,0 +1,96 @@
+import sqlite3
+import os
+from sqlalchemy.pool import SingletonThreadPool
+
+__db__ = 'numbers.db'
+
+def __fail_safe_setup():
+    con = sqlite3.connect(__db__)
+    cu  = con.cursor()
+    cu.execute('''
+       select count(*) from sqlite_master 
+       where type='table' and name='numbers' ''')
+    res = cu.fetchone()
+    if res[0] == 0:
+        cu.execute('''
+            create table numbers(
+              c1 int, c2 int, c3 int, c4 int, c5 int, c6 int, 
+              primary key(c1, c2, c3, c4, c5, c6))            ''')
+    cu.execute('''
+       select count(*) from sqlite_master 
+       where type='table' and name='status' ''')
+    res = cu.fetchone()
+    if res[0] == 0:
+        cu.execute('create table status(status text)')
+        cu.execute("insert into status(status) values ('unlocked')")
+    con.commit()
+    cu.close()
+    con.close()
+    
+def __get_connection():
+    return pool.connect()
+
+__fail_safe_setup()
+pool = SingletonThreadPool(lambda: sqlite3.connect(__db__))
+
+def find_num(num, limit=20):
+    if not type(num) == str:
+        raise 'Parameter should be a string!'
+    if len(num) > 6:
+        num = num[0:6]
+    if len(num) == 0:
+        return []
+    digits = len(num)
+    cols = ','.join(['c' + str(n+1) for n in range(digits)])
+    parm = ','.join(['?'] * digits)
+    where_clause = ' and '.join(['c' + str(n+1) + '=?' for n in range(digits)])
+    params = list(num).append(limit)
+    con = __get_connection()
+    cu = con.cursor()
+    count = cu.execute('select count(*) from numbers where %s' % where_clause,
+                params)
+    cu.execute('select c1||c2||c3||c4||c5||c6 from numbers where %s limit ?' %
+            where_clause, params)
+    ret = {'count': count[0], 'numbers': cu.fetchall()}
+    cu.close()
+    return ret
+
+def is_db_locked():
+    con = __get_connection()
+    cu  = con.cursor()
+    res = cu.execute('select status from status limit 1')
+    ret = cu.fetchone()
+    try:
+        if not res:
+            raise RuntimeError('Database in unknown state: no status record found.')
+        if ret[0] == 'locked':
+            return True
+        elif ret[0] == 'unlocked':
+            return False
+        else:
+            raise RuntimeError('Database in unknown state: status (%s).' % res[0])
+    finally:
+        cu.close()
+
+def lock_db(lock):
+    con = __get_connection()
+    cu  = con.cursor()
+    status = 'locked' if lock else 'unlocked'
+    res = cu.execute('update status set status=?', (status,))
+    con.commit()
+
+def load_numbers(lines):
+    con = __get_connection()
+    cu  = con.cursor()
+    errors = 0
+    for line in f:
+        line = line.strip()
+        digits = [int(i) for i in line]
+        try:
+            cu.execute('insert into numbers(c1,c2,c3,c4,c5,c6) values(?,?,?,?,?,?)',
+                    digits)
+        finally:
+            errors = errors + 1
+
+    con.commit()
+    return errors
