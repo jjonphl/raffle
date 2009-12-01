@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <title>Raffle</title>
+    <style>
+        * { font-family: helvetica, arial; }
+        input#number { font-size: 36pt; text-align: center;}
+        div#digits { text-align: center; font-size: 24pt; color: lightgray }
+        div#digits span.selected { color: #ff3333; }
+        div#results table { width: 100%; }
+        div#results table td { text-align: center; }
+        div#count { text-align: center }
+    </style>
+  </head>
+  <body>
+      <div style="text-align:center">
+        <input type="text" id="number" maxlength="6" size="6">
+      </div>
+      <div id="digits">
+          <span id="d0" class="selected">0</span> &nbsp;
+          <span id="d1">1</span> &nbsp;
+          <span id="d2">2</span> &nbsp;
+          <span id="d3">3</span> &nbsp;
+          <span id="d4">4</span> &nbsp;
+          <span id="d5">5</span> &nbsp;
+          <span id="d6">6</span> &nbsp;
+          <span id="d7">7</span> &nbsp;
+          <span id="d8">8</span> &nbsp;
+          <span id="d9">9</span>
+      </div>
+
+      <div id="count">3 numbers found</div>
+      <div id="results">
+        <table>
+          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
+          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
+          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
+          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
+          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
+          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
+        </table>
+      </div>
+
+    <script type="text/javascript" src="/static/jquery.js"></script>
+    <script type="text/javascript">
+        var selected = false;
+        function results(data) {
+            var len = data.results.length;
+            $$('#count').text(len + ' numbers found.');
+        }
+
+        function onKeyUp(e) {
+            $$.getJSON('/query', { num: $$('#number').val() }, results);
+        }
+        $$(function() {
+            $$('#number').keyup(onKeyUp);
+        });
+    </script>
+  </body>
+</html>
