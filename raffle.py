@@ -22,13 +22,14 @@ class Query(object):
     def GET(self):
         num = web.input(num='').num
         if len(num) == 0:
-            return json.dumps({'status': 'empty'})
+            next = dao.find_first_digits()
+            return json.dumps({'status': 'empty', 'next': next})
 
         result = dao.find_num(str(num))
         status = 'ok'
         return json.dumps({'status': status, 
-                           'count': result['count'],
-                           'numbers':[r[0] for r in result['numbers']]})
+            'count': result['count'], 'next': result['next'],
+            'numbers':[r[0] for r in result['numbers']]})
 
 class Setup(object):
     def GET(self):

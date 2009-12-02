@@ -44,16 +44,33 @@ def find_num(num, limit=20):
     cols = ','.join(['c' + str(n+1) for n in range(digits)])
     parm = ','.join(['?'] * digits)
     where_clause = ' and '.join(['c' + str(n+1) + '=?' for n in range(digits)])
-    params = list(num).append(limit)
+    params = list(num)
     con = __get_connection()
     cu = con.cursor()
     count = cu.execute('select count(*) from numbers where %s' % where_clause,
-                params)
-    cu.execute('select c1||c2||c3||c4||c5||c6 from numbers where %s limit ?' %
-            where_clause, params)
-    ret = {'count': count[0], 'numbers': cu.fetchall()}
+                params).fetchone()
+    cu.execute('''
+        select c1||c2||c3||c4||c5||c6 from numbers where %s 
+        order by c1,c2,c3,c4,c5,c6 limit ?''' % where_clause, params + [limit])
+    numbers = cu.fetchall()
+    if len(num) < 6:
+        n = len(num) + 1
+        next = cu.execute('select distinct(c%d) from numbers where %s' %
+                (n, where_clause), params).fetchall()
+        next = [n[0] for n in next]
+    else:
+        next = []
+    ret = {'count': count[0], 'numbers': numbers, 'next': next}
     cu.close()
     return ret
+
+def find_first_digits():
+    con = __get_connection()
+    cu = con.cursor()
+    next = cu.execute('select distinct(c1) from numbers').fetchall()
+    cu.close()
+    return [n[0] for n in next]
+
 
 def is_db_locked():
     con = __get_connection()

@@ -12,11 +12,14 @@
     </style>
   </head>
   <body>
+      <div style="text-align:right;margin-bottom:50px">
+          <a href="/setup">Setup</a>
+      </div>
       <div style="text-align:center">
         <input type="text" id="number" maxlength="6" size="6">
       </div>
       <div id="digits">
-          <span id="d0" class="selected">0</span> &nbsp;
+          <span id="d0">0</span> &nbsp;
           <span id="d1">1</span> &nbsp;
           <span id="d2">2</span> &nbsp;
           <span id="d3">3</span> &nbsp;
@@ -28,7 +31,7 @@
           <span id="d9">9</span>
       </div>
 
-      <div id="count">3 numbers found</div>
+      <div id="count">&nbsp;</div>
       <div id="results">
         <table>
           <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
@@ -43,12 +46,45 @@
     <script type="text/javascript" src="/static/jquery.js"></script>
     <script type="text/javascript">
         var selected = false;
+        var global_data;
+
+        function select_digits(next_digits) {
+            $$('#digits span').removeClass('selected');
+            if (next_digits && next_digits.length > 0) {
+                var digits = $$('#digits');
+                for (i in next_digits) {
+                    digits.find('span#d'+next_digits[i]).addClass('selected');
+                }
+            }
+        }
         function results(data) {
             if (data.status == 'ok' && data.count > 0) {
+                global_data = data;
+                var text = (data.count>1)?' numbers found.':' number found';
+                $$('#count').text(data.count + text );
                 var results = data.numbers;
-                $$('#count').text(data.count + ' numbers found.');
-            } else if (data.status == 'empty' || data.count == 0) {
+                var table = $$('<table></table>');
+                var tr, i, j;
+                for (i = 0; i < data.numbers.length; i += 4) {
+                    tr = $$('<tr></tr>');
+                    for (j = 0; j < 4 && (i+j) < data.numbers.length; j++) {
+                        tr.append('<td>' + data.numbers[i+j] + '</td>');
+                    }
+                    for ( ; j < 4; j++) tr.append('<td>&nbsp;</td>');
+                    table.append(tr)
+                }
+                $$('#results table').remove();
+                $$('#results').append(table);
+                select_digits(data.next);
+            } else if (data.count == 0) {
                 $$('#count').text('No number found.');
+                $$('#results table').remove();
+                select_digits(data.digits);
+            } else if (data.status == 'empty') {
+                $$('#count').text('');
+                $$('#results table').remove();
+                $$('#digits span').removeClass('selected');
+                select_digits(data.next);
             }
         }
 
@@ -56,7 +92,8 @@
             $$.getJSON('/query', { num: $$('#number').val() }, results);
         }
         $$(function() {
-            $$('#number').keyup(onKeyUp);
+            $$('#number').keyup(onKeyUp).focus();
+            onKeyUp();
         });
     </script>
   </body>
