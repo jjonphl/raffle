@@ -33,7 +33,20 @@ class Query(object):
 
 class Setup(object):
     def GET(self):
-        pass
+        return render.setup(dao.numbers_count())
+    def POST(self):
+        form = web.input(_unicode=True, numbers={})
+        error = None
+        web.debug(form)
+        if 'numbers' in form:
+            errors = dao.load_numbers(form.numbers.file)
+            if errors > 0:
+                error = 'Error in %d lines.' % errors
+        else:
+            error = 'No file uploaded'
+        msg = None if error else ('Successfully uploaded %s.' % form.numbers.filename)
+        return render.setup(dao.numbers_count(), msg, error)
+
 
 if __name__ == '__main__':
     app.run()

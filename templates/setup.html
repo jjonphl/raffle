@@ -1,0 +1,23 @@
+$def with (count, msg=None, error=None)
+<html>
+  <head>
+    <title>Raffle Setup</title>
+  </head>
+  <body>
+    <div style="text-align:right">
+      <a href="/">Back to Raffle</a>
+    </div>
+    <div>
+        <h3>Upload Number List</h3>
+        $if msg:
+          <p style="color:green">$msg</p>
+        $if error:
+          <p style="color:red">$msg</p>
+        $count number(s) currently loaded.
+        <p><form method="POST" enctype="multipart/form-data">
+            <input type="file" name="numbers">
+            <input type="submit" value="Upload">
+        </form></p>
+    </div>
+  </body>
+</html>

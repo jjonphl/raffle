@@ -33,7 +33,7 @@ def __get_connection():
 __fail_safe_setup()
 pool = SingletonThreadPool(lambda: sqlite3.connect(__db__))
 
-def find_num(num, limit=20):
+def find_num(num, limit=60):
     if not type(num) == str:
         raise 'Parameter should be a string!'
     if len(num) > 6:
@@ -71,6 +71,12 @@ def find_first_digits():
     cu.close()
     return [n[0] for n in next]
 
+def numbers_count():
+    con = __get_connection()
+    cu = con.cursor()
+    count = cu.execute('select count(*) from numbers').fetchone()
+    cu.close()
+    return count[0]
 
 def is_db_locked():
     con = __get_connection()
@@ -100,14 +106,16 @@ def load_numbers(lines):
     con = __get_connection()
     cu  = con.cursor()
     errors = 0
-    for line in f:
+    cu.execute('delete from numbers')
+    for line in lines:
         line = line.strip()
-        digits = [int(i) for i in line]
         try:
+            digits = [int(i) for i in line]
             cu.execute('insert into numbers(c1,c2,c3,c4,c5,c6) values(?,?,?,?,?,?)',
                     digits)
-        finally:
+        except:
             errors = errors + 1
 
     con.commit()
+    cu.close()
     return errors
