@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.join(sys.path[0], 'webpy'))
 
 import web
-import json
+import json, csv
 import dao
 
 urls = ('/', 'Raffle',
@@ -39,7 +39,7 @@ class Setup(object):
         error = None
         web.debug(form)
         if 'numbers' in form:
-            errors = dao.load_numbers(form.numbers.file)
+            errors = dao.load_numbers(csv.reader(form.numbers.file))
             if errors > 0:
                 error = 'Error in %d lines.' % errors
         else:

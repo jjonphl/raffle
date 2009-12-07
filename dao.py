@@ -15,6 +15,7 @@ def __fail_safe_setup():
         cu.execute('''
             create table numbers(
               c1 int, c2 int, c3 int, c4 int, c5 int, c6 int, 
+              name text, employer text,
               primary key(c1, c2, c3, c4, c5, c6))            ''')
     cu.execute('''
        select count(*) from sqlite_master 
@@ -108,11 +109,11 @@ def load_numbers(lines):
     errors = 0
     cu.execute('delete from numbers')
     for line in lines:
-        line = line.strip()
+        num, name, emp = line[0], line[1], line[2]
         try:
-            digits = [int(i) for i in line]
-            cu.execute('insert into numbers(c1,c2,c3,c4,c5,c6) values(?,?,?,?,?,?)',
-                    digits)
+            params = [int(i) for i in num] + [name, emp]
+            cu.execute('insert into numbers(c1,c2,c3,c4,c5,c6,name,employer) values(?,?,?,?,?,?,?,?)',
+                    params)
         except:
             errors = errors + 1
 

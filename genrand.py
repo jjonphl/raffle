@@ -18,5 +18,6 @@ if __name__ == '__main__':
     n, p, start_number = int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3])
     gen = genrand(p, start_number)
     for k in range(n):
-        print '%06d' % gen.next()
+        i = gen.next()
+        print '%06d,Name %d,Employer %d' % (i,i,i)
 
