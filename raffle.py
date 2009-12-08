@@ -23,11 +23,11 @@ class Query(object):
         num = web.input(num='').num
         if len(num) == 0:
             next = dao.find_first_digits()
-            return json.dumps({'status': 'empty', 'next': next})
+            return json.dumps({'status': 'empty', 'next':next, 'num':num})
 
         result = dao.find_num(str(num))
         status = 'ok'
-        return json.dumps({'status': status, 
+        return json.dumps({'status': status, 'num': num,
             'count': result['count'], 'next': result['next'],
             'numbers':[r[0] for r in result['numbers']]})
 

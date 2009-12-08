@@ -51,7 +51,7 @@ def find_num(num, limit=60):
     count = cu.execute('select count(*) from numbers where %s' % where_clause,
                 params).fetchone()
     cu.execute('''
-        select c1||c2||c3||c4||c5||c6 from numbers where %s 
+        select c1||c2||c3||c4||c5||c6, name, employer from numbers where %s 
         order by c1,c2,c3,c4,c5,c6 limit ?''' % where_clause, params + [limit])
     numbers = cu.fetchall()
     if len(num) < 6:

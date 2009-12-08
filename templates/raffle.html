@@ -3,9 +3,10 @@
     <title>Raffle</title>
     <style>
         * { font-family: helvetica, arial; }
-        input#number { font-size: 36pt; text-align: center;}
-        div#digits { text-align: center; font-size: 24pt; color: lightgray }
-        div#digits span.selected { color: #ff3333; }
+        input#number { font-size: 56pt; text-align: center;}
+        table#digits { text-align: center; font-size: 28pt; font-weight: bold; width: 90%}
+        table#digits tr td.digits { color: #cccccc; text-align: right}
+        table#digits span.selected { color: #ff3333; }
         div#results table { width: 100%; }
         div#results table td { text-align: center; }
         div#count { text-align: center; font-weight: bold }
@@ -18,7 +19,9 @@
       <div style="text-align:center">
         <input type="text" id="number" maxlength="6" size="6">
       </div>
-      <div id="digits">
+      <table id="digits">
+        <tr><td>Tambiolo <span id="tnum">1</span>: </td>
+          <td class="digits">
           <span id="d0">0</span> &nbsp;
           <span id="d1">1</span> &nbsp;
           <span id="d2">2</span> &nbsp;
@@ -29,18 +32,12 @@
           <span id="d7">7</span> &nbsp;
           <span id="d8">8</span> &nbsp;
           <span id="d9">9</span>
-      </div>
+        </td></tr>
+      </table>
 
       <div id="count">&nbsp;</div>
       <div id="results">
-        <table>
-          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
-          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
-          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
-          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
-          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
-          <tr><td>000001</td><td>000002</td><td>000003</td><td>000004</td></tr>
-        </table>
+        <table> </table>
       </div>
 
     <script type="text/javascript" src="/static/jquery.js"></script>
@@ -51,41 +48,51 @@
         function select_digits(next_digits) {
             $$('#digits span').removeClass('selected');
             if (next_digits && next_digits.length > 0) {
-                var digits = $$('#digits');
+                var digits = $$('#digits td.digits');
                 for (i in next_digits) {
                     digits.find('span#d'+next_digits[i]).addClass('selected');
                 }
+                $$('#digits td.digits span.selected').hide().fadeIn(500);
             }
         }
+
+        function show_matches(results) {
+            var table = $$('<table></table>');
+            var tr, i, j;
+            for (i = 0; i < results.length; i += 4) {
+                tr = $$('<tr></tr>');
+                for (j = 0; j < 4 && (i+j) < results.length; j++) {
+                    tr.append('<td>' + results[i+j] + '</td>');
+                }
+                for ( ; j < 4; j++) tr.append('<td>&nbsp;</td>');
+                table.append(tr)
+            }
+            $$('#results table').remove();
+            $$('#results').append(table);
+        }
+
         function results(data) {
             if (data.status == 'ok' && data.count > 0) {
                 global_data = data;
-                var text = (data.count>1)?' numbers found.':' number found';
+                var text = (data.count>1)?' possible winners.':' winner found';
                 $$('#count').text(data.count + text );
-                var results = data.numbers;
-                var table = $$('<table></table>');
-                var tr, i, j;
-                for (i = 0; i < data.numbers.length; i += 4) {
-                    tr = $$('<tr></tr>');
-                    for (j = 0; j < 4 && (i+j) < data.numbers.length; j++) {
-                        tr.append('<td>' + data.numbers[i+j] + '</td>');
-                    }
-                    for ( ; j < 4; j++) tr.append('<td>&nbsp;</td>');
-                    table.append(tr)
-                }
-                $$('#results table').remove();
-                $$('#results').append(table);
-                select_digits(data.next);
+                //show_matches(data.numbers);
             } else if (data.count == 0) {
-                $$('#count').text('No number found.');
+                $$('#count').text('No winner found.');
                 $$('#results table').remove();
-                select_digits(data.digits);
             } else if (data.status == 'empty') {
                 $$('#count').text('');
                 $$('#results table').remove();
                 $$('#digits span').removeClass('selected');
-                select_digits(data.next);
             }
+            var tnum = data.num.length + 1;
+            if (tnum < 7) {
+                $$('#digits').show()
+                $$('#tnum').text(tnum);
+            } else {
+                $$('#digits').hide()
+            }
+            select_digits(data.next);
         }
 
         function onKeyUp(e) {
